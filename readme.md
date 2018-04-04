@@ -2,10 +2,10 @@
 
 Script to create google form questionaire for doing simple RIDs classicication of physical features of performance feedback summaries.
 
-# Installation
+## Installation
 From sheets, Add-ons > Get Add-ons.  Search for "Questioning Figures"
 
-# Use
+## Use
 1. Create and open new spreadsheet to complile list of images.
 2. Select a directory with png images in it:
      questioning-figures > Choose Image Folder
@@ -14,3 +14,9 @@ From sheets, Add-ons > Get Add-ons.  Search for "Questioning Figures"
 
 The form created will bear the same name as the spreadsheet that was used to compile list of images.
 The spreadsheet that the data from the form will be stored in is named the same but with "-data" appended.
+
+## Developing
+See [developing.md](developing.md)
+
+## License
+See [license.md](license.md)
