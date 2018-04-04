@@ -69,7 +69,6 @@ function popFromFolderId(id) {
  * Fill in the configuration for generating a form
 */
 function defaultConfigFill(last_row, num_rows){
-  Logger.log("dumb");
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];
   
@@ -104,8 +103,6 @@ function makeForm() {
 function populateFormWithValues(form, values){
   var img_id_col = 1;
   
-  Logger.log("FormID: "+form.getId);
-  Logger.log("FormTitle: "+form.getTitle);
   for(row = 0; row < values.length; row++){
     var img = DriveApp.getFileById(values[row][img_id_col]);
     form.addPageBreakItem()
