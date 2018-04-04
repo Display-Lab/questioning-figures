@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+  <script>
+
+    var DIALOG_DIMENSIONS = {width: 600, height: 425};
+    var pickerApiLoaded = false;
+      
+    /**
+     * Loads the Google Picker API.
+     */
+    function onApiLoad() {
+      gapi.load('picker', {'callback': function() {
+        pickerApiLoaded = true;
+      }});
+     }
+     
+    /**
+     * Step 1: Entry Point from button
+     * Get the picker key from a call to the server side function.
+     *   Pass that value to the next function in the chain.
+     */
+    function lookupKey(){
+      google.script.run
+          .withSuccessHandler(keyLookupSuccess)
+          .withFailureHandler(showBasicError)
+          .pickerKey();
+    }
+
+    // Step 2: With the developer key, get OAuth token
+    function keyLookupSuccess(key) {
+      google.script.run
+          .withSuccessHandler(createPicker)
+          .withFailureHandler(showPickerError)
+          .withUserObject(key)
+          .getOAuthToken();
+    }
+
+    /**
+     * Step 3. Now that we have a token and key create a picker
+     *   that can access the user's drive folders.
+     *
+     * @param {string} token An OAuth 2.0 access token that lets Picker access the
+     *     file type specified in the addView call.
+     * @param {string} key A developer key for use by picker builder.
+     */
+    function createPicker(token, key) {     
+      if (pickerApiLoaded && token) {
+        document.getElementById('result').innerHTML = 'start';
+        var dview = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+          .setIncludeFolders(true)
+          .setMimeTypes('application/vnd.google-apps.folder')
+          .setSelectFolderEnabled(true);
+        
+        var picker = new google.picker.PickerBuilder()
+            // Instruct Picker to display only spreadsheets in Drive. For other
+            // views, see https://developers.google.com/picker/docs/#otherviews
+            .addView(dview)
+            .hideTitleBar()
+            .setOAuthToken(token)
+            .setDeveloperKey(key)
+            .setCallback(pickerCallback)
+            .setOrigin(google.script.host.origin)
+            // Instruct Picker to fill the dialog, minus 2 pixels for the border.
+            .setSize(DIALOG_DIMENSIONS.width - 2,
+                DIALOG_DIMENSIONS.height - 2)
+            .build();
+        picker.setVisible(true);
+      } else {
+        showBasicError('Unable to load the file picker.');
+      }
+    }
+
+    /**
+     * Step 4: Extract info about the folder
+     * A callback function that extracts the chosen document's metadata from the
+     * response object. For details on the response object, see
+     * https://developers.google.com/picker/docs/result
+     *
+     * @param {object} data The response object.
+     */
+    function pickerCallback(data) {
+      var action = data[google.picker.Response.ACTION];
+      if (action == google.picker.Action.PICKED) {
+        var doc = data[google.picker.Response.DOCUMENTS][0];
+        var id = doc[google.picker.Document.ID];
+        var url = doc[google.picker.Document.URL];
+        var title = doc[google.picker.Document.NAME];
+        var type = doc[google.picker.Document.TYPE];
+        document.getElementById('result').innerHTML =
+            '<b>Added:</b><br>Name: <a href="' + url + '">' + title +
+            '</a><br>ID: ' + id + '<br>    Type: ' + type;
+            
+        google.script.run.popFromFolderId(id);
+      } else if (action == google.picker.Action.CANCEL) {
+        document.getElementById('result').innerHTML = 'Picker canceled.';
+      }
+      
+    }
+    
+    /**
+     * Displays an error message within the #result element.
+     *
+     * @param {string} message The error message to display.
+     */
+    function showPickerError(message, ctx) {
+      document.getElementById('result').innerHTML = 'Error: ' + message;
+    }
+    
+    function showBasicError(message) {
+      document.getElementById('result').innerHTML = 'Error: ' + message;
+    }
+  </script>
+</head>
+<body>
+  <div>
+    <button onclick='lookupKey()'>Select a folder</button>
+    <p id='result'></p>
+  </div>
+  <div>
+    <button onclick='google.script.host.close()'>Done</button>
+    <p id='done'></p>
+  </div>
+  <script src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+</body>
+</html>
