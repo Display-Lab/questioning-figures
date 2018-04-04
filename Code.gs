@@ -1,7 +1,12 @@
+// Default constants
+var SCALE_CHOICES = ["None","Nominal","Ordinal","Interval","Ratio"];
+var QUESTION_ROWS = ["Domain Question 1", "Domain Question 2", "Domain Question 3"];
+var HEADERS = ["img_name", "img_id", "img_url", "img_desc", "question", "options"];
+
 /**
  * Creates a custom menu in Google Sheets when the spreadsheet opens.
  */
-function onOpen() {
+function onOpen(e) {
   SpreadsheetApp.getUi().createMenu('FormBuilder')
       .addItem('Choose Image Folder', 'showPicker')
       .addItem('Create Form', 'makeForm')
@@ -46,17 +51,85 @@ function popFromFolderId(id) {
   
   var folder = DriveApp.getFolderById(id);
   var photos = folder.getFilesByType('image/png')
+  var num_rows = 0;
   while(photos.hasNext()){
     var file = photos.next();
-    name = file.getName();
-    url  = file.getUrl();
-    desc = file.getDescription();
-    id = file.getId();
-    sheet.appendRow([name, id, url, desc])
+    var name = file.getName();
+    var url  = file.getUrl();
+    var desc = file.getDescription();
+    var img_id = file.getId();
+    sheet.appendRow([name, img_id, url, desc])
+    num_rows += 1;
   }
+  
+  defaultConfigFill(sheet.getLastRow(), num_rows);
+}
+
+/**
+ * Fill in the configuration for generating a form
+*/
+function defaultConfigFill(last_row, num_rows){
+  Logger.log("dumb");
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  
+  var data =[];
+  var start_row = last_row - num_rows + 1;
+  var start_col = 5;
+  var rng = sheet.getRange(start_row, start_col, num_rows, 6);
+  
+  for(var r = 0; r < num_rows; r++){
+    var row_data = [];
+    for( var q = 0; q < QUESTION_ROWS.length; q++ ){
+      row_data.push(QUESTION_ROWS[q]);
+      row_data.push(SCALE_CHOICES.toString());
+    }
+    data.push(row_data);
+  }
+  
+  rng.setValues(data);
 }
 
 function makeForm() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  
+  var form = createFormWithBacking(); 
+  var last_row = sheet.getLastRow();
+  var values = sheet.getSheetValues(1, 1, last_row, 11);
+  
+  var populated_form = populateFormWithValues(form, values);
+}
+
+function populateFormWithValues(form, values){
+  var img_id_col = 1;
+  
+  Logger.log("FormID: "+form.getId);
+  Logger.log("FormTitle: "+form.getTitle);
+  for(row = 0; row < values.length; row++){
+    var img = DriveApp.getFileById(values[row][img_id_col]);
+    form.addPageBreakItem()
+    .setTitle(img.getName());
+    
+    form.addImageItem()
+      .setImage(img.getBlob())
+      .setTitle(values[row][0])
+      .setAlignment(FormApp.Alignment.CENTER);
+    
+    var questions = [ values[row][4], values[row][6], values[row][8] ];
+    var choices =   [ values[row][5], values[row][7], values[row][9] ];
+    
+    form.addGridItem()
+    .setTitle("What scale is used in the display to answer the following questions?")
+    .setRows(questions)
+    .setColumns(choices)
+    .setRequired(true); 
+  }   
+  
+  return(form);
+}
+
+function createFormWithBacking(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];
   
@@ -76,26 +149,5 @@ function makeForm() {
     .setRequireLogin(true)
     .setDestination(FormApp.DestinationType.SPREADSHEET, recip.getId());
   
-  var SCALE_CHOICES = ["None","Nominal","Ordinal","Interval","Ratio"];
-  var QUESTION_ROWS = ["Question 1", "Question 2", "Question 3"];
-  
-  var last_row = sheet.getLastRow();
-  var values = sheet.getSheetValues(1, 1, last_row, 3);
-  
-  for(row = 0; row < last_row; row++){
-    var img = DriveApp.getFileById(values[row][1]);
-    form.addPageBreakItem()
-    .setTitle(img.getName());
-    
-    form.addImageItem()
-      .setImage(img.getBlob())
-      .setTitle(values[row][0])
-      .setAlignment(FormApp.Alignment.CENTER);
-    
-    form.addGridItem()
-    .setTitle("What scale is used in the display to answer the following questions?")
-    .setRows(QUESTION_ROWS)
-    .setColumns(SCALE_CHOICES)
-    .setRequired(true);
-  }
+  return(form);
 }
