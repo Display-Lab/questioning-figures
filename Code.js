@@ -120,8 +120,8 @@ function populateFormWithValues(form, values){
     for( i = 1; i < values.length; i=i+2 ){ choices.push(values[row][i]); }
 
     // Filter out empties
-    questions = questions.filter(x => x);
-    choices = choices.filter(x => x);
+    questions = questions.filter(is_truthy);
+    choices = choices.filter(is_truthy);
     
     // Bail if questions and choices don't line up
     if(questions.length !== choices.length){
@@ -137,6 +137,8 @@ function populateFormWithValues(form, values){
   
   return(form);
 }
+
+function is_truthy(x){return Boolean(x);}
 
 function createFormWithBacking(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
