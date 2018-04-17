@@ -1,7 +1,7 @@
 // Default constants
 var SCALE_CHOICES = ["None","Nominal","Ordinal","Interval","Ratio"];
 var QUESTION_ROWS = ["Domain Question 1", "Domain Question 2", "Domain Question 3"];
-var HEADERS = ["img_name", "img_id", "img_url", "img_desc", "question", "options"];
+var HEADERS = ["img_name", "img_id", "img_url", "img_desc", "Q1", "choices 1","Q2","choices 2"];
 
 /**
  * Creates a custom menu in Google Sheets when the spreadsheet opens.
@@ -94,8 +94,8 @@ function makeForm() {
   var sheet = ss.getSheets()[0];
   
   var form = createFormWithBacking(); 
-  var last_row = sheet.getLastRow();
-  var values = sheet.getSheetValues(1, 1, last_row, 11);
+  var values = sheet.getSheetValues(1, 1,
+    sheet.getLastRow(), sheet.getLastColumn());
   
   var populated_form = populateFormWithValues(form, values);
 }
@@ -113,8 +113,20 @@ function populateFormWithValues(form, values){
       .setTitle(values[row][0])
       .setAlignment(FormApp.Alignment.CENTER);
     
-    var questions = [ values[row][4], values[row][6], values[row][8] ];
-    var choices =   [ values[row][5], values[row][7], values[row][9] ];
+    // Select every other value for Q's and Choices
+    var questions = [];
+    var choices = [];
+    for( i = 0; i < values.length; i=i+2 ){ questions.push(values[row][i]); }
+    for( i = 1; i < values.length; i=i+2 ){ choices.push(values[row][i]); }
+
+    // Filter out empties
+    questions = questions.filter(x => x);
+    choices = choices.filter(x => x);
+    
+    // Bail if questions and choices don't line up
+    if(questions.length !== choices.length){
+      throw new Error("Number of choices sets and number of questions don't match.");
+    }
     
     form.addGridItem()
     .setTitle("What scale is used in the display to answer the following questions?")
