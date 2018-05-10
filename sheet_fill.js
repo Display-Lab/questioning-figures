@@ -14,6 +14,9 @@ function popFromFolderId(id) {
   
   var folder = DriveApp.getFolderById(id);
   var photos = folder.getFilesByType('image/png')
+
+  makeHeader(sheet);
+
   var num_rows = 0;
   while(photos.hasNext()){
     var file = photos.next();
@@ -26,6 +29,15 @@ function popFromFolderId(id) {
   }
   
   defaultConfigFill(sheet.getLastRow(), num_rows);
+}
+
+function makeHeader(sheet){
+  sheet.deleteRow(1);
+  sheet.insertRowBefore(1);
+
+  var rng = sheet.getRange(1, 1, 1, HEADERS.length);
+  rng.setValues([HEADERS]);
+  sheet.setFrozenRows(1);
 }
 
 /**
@@ -43,7 +55,7 @@ function defaultConfigFill(last_row, num_rows){
   for(var r = 0; r < num_rows; r++){
     var row_data = [];
     for( var q = 0; q < QUESTION_EXMPL.length; q++ ){
-      row_data.push(QUESTION_ROWS[q]);
+      row_data.push(QUESTION_EXMPL[q]);
       row_data.push(CHOICES_EXMPL.toString());
     }
     data.push(row_data);
