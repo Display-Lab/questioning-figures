@@ -1,5 +1,5 @@
 // Default constants
-var CHOICES_EXMPL = ["Choice A","Choice B","Choice C","Choice D","Choice E"];
+var CHOICES_EXMPL = "Choice A ;Choice B ;Choice C ;Choice D ;Choice E";
 var QUESTION_EXMPL = ["Question 1", "Question 2", "Question 3"];
 var HEADERS = ["img_name", "img_id", "img_url", "img_desc", "Q1", "choices 1","Q2","choices 2"];
 
@@ -56,7 +56,7 @@ function defaultConfigFill(last_row, num_rows){
     var row_data = [];
     for( var q = 0; q < QUESTION_EXMPL.length; q++ ){
       row_data.push(QUESTION_EXMPL[q]);
-      row_data.push(CHOICES_EXMPL.toString());
+      row_data.push(CHOICES_EXMPL);
     }
     data.push(row_data);
   }

@@ -30,10 +30,10 @@ function populateFormWithValues(form, values){
     // Select every other value for Q's and Choices
     var questions = [];
     var choices = [];
-    for( i = QUESTION_START_COL; i < values.length; i=i+2 ){
+    for( i = QUESTION_START_COL; i <= values.length; i=i+2 ){
       questions.push(values[row][i]);
     }
-    for( i = CHOICE_START_COL; i < values.length; i=i+2 ){ choices.push(values[row][i]); }
+    for( i = CHOICE_START_COL; i <= values.length; i=i+2 ){ choices.push(values[row][i]); }
 
     // Filter out empties
     questions = questions.filter(is_truthy);
@@ -41,14 +41,18 @@ function populateFormWithValues(form, values){
     
     // Bail if questions and choices don't line up
     if(questions.length !== choices.length){
-      throw new Error("Number of choices sets and number of questions don't match.");
+      var msg = "Number of choices sets and number of questions don't match."
+      msg = msg + "\n" + questions + "\n" + choices;
+      throw new Error(msg);
+
     }
-    
-    form.addGridItem()
-    .setTitle("Answer the following questions:")
-    .setRows(questions)
-    .setColumns(choices)
-    .setRequired(true); 
+
+    for( i=0; i< questions.length; i++){
+      form.addCheckboxItem()
+        .setTitle(questions[i])
+        .setChoiceValues(choices[i].split(";"))
+        .setRequired(true); 
+    }
   }   
   
   return(form);
