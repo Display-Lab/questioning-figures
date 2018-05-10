@@ -1,6 +1,6 @@
 // Default constants
-var SCALE_CHOICES = ["None","Nominal","Ordinal","Interval","Ratio"];
-var QUESTION_ROWS = ["Domain Question 1", "Domain Question 2", "Domain Question 3"];
+var CHOICES_EXMPL = ["Choice A","Choice B","Choice C","Choice D","Choice E"];
+var QUESTION_EXMPL = ["Question 1", "Question 2", "Question 3"];
 var HEADERS = ["img_name", "img_id", "img_url", "img_desc", "Q1", "choices 1","Q2","choices 2"];
 
 /**
@@ -79,9 +79,9 @@ function defaultConfigFill(last_row, num_rows){
   
   for(var r = 0; r < num_rows; r++){
     var row_data = [];
-    for( var q = 0; q < QUESTION_ROWS.length; q++ ){
+    for( var q = 0; q < QUESTION_EXMPL.length; q++ ){
       row_data.push(QUESTION_ROWS[q]);
-      row_data.push(SCALE_CHOICES.toString());
+      row_data.push(CHOICES_EXMPL.toString());
     }
     data.push(row_data);
   }
