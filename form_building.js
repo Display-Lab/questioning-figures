@@ -1,32 +1,39 @@
+// Constants for 2d value array access.
+var IMG_NAME_COL = 0;
+var IMG_ID_COL = 1;
+var QUESTION_START_COL = 4;
+var CHOICE_START_COL = 5;
+
 function makeForm() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];
   
   var form = createFormWithBacking(); 
-  var values = sheet.getSheetValues(1, 1,
+  var values = sheet.getSheetValues(2, 1,
     sheet.getLastRow(), sheet.getLastColumn());
   
   var populated_form = populateFormWithValues(form, values);
 }
 
 function populateFormWithValues(form, values){
-  var img_id_col = 1;
   
   for(row = 0; row < values.length; row++){
-    var img = DriveApp.getFileById(values[row][img_id_col]);
+    var img = DriveApp.getFileById(values[row][IMG_ID_COL]);
     form.addPageBreakItem()
     .setTitle(img.getName());
     
     form.addImageItem()
       .setImage(img.getBlob())
-      .setTitle(values[row][0])
+      .setTitle(values[row][IMG_NAME_COL])
       .setAlignment(FormApp.Alignment.CENTER);
     
     // Select every other value for Q's and Choices
     var questions = [];
     var choices = [];
-    for( i = 0; i < values.length; i=i+2 ){ questions.push(values[row][i]); }
-    for( i = 1; i < values.length; i=i+2 ){ choices.push(values[row][i]); }
+    for( i = QUESTION_START_COL; i < values.length; i=i+2 ){
+      questions.push(values[row][i]);
+    }
+    for( i = CHOICE_START_COL; i < values.length; i=i+2 ){ choices.push(values[row][i]); }
 
     // Filter out empties
     questions = questions.filter(is_truthy);
@@ -38,7 +45,7 @@ function populateFormWithValues(form, values){
     }
     
     form.addGridItem()
-    .setTitle("What scale is used in the display to answer the following questions?")
+    .setTitle("Answer the following questions:")
     .setRows(questions)
     .setColumns(choices)
     .setRequired(true); 
