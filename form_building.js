@@ -15,38 +15,38 @@ function makeForm() {
   var populated_form = populateFormWithValues(form, values);
 }
 
-function populateFormWithValues(form, values){
+function addImageToFormByID(form, img_id, title){
+  var img = DriveApp.getFileById(img_id);
   
-  for(row = 0; row < values.length; row++){
-    var img = DriveApp.getFileById(values[row][IMG_ID_COL]);
-    form.addPageBreakItem()
-    .setTitle(img.getName());
-    
-    form.addImageItem()
-      .setImage(img.getBlob())
-      .setTitle(values[row][IMG_NAME_COL])
-      .setAlignment(FormApp.Alignment.CENTER);
-    
+  form.addImageItem()
+    .setImage(img.getBlob())
+    .setTitle(title)
+    .setAlignment(FormApp.Alignment.CENTER);
+  return(form)
+}
+
+function addImageQuestionsToForm(form, row_vals){
+
+    // Select every other value for Q's and Choices
     var questions = [];
     var choices = [];
 
-    // Populate Questsions and Choices
-    //   The spacing is every other column.
-    for( i = QUESTION_START_COL; i <= values[row].length; i=i+2 ){
-      questions.push(values[row][i]);
+    for( i = QUESTION_START_COL; i <= row_vals.length; i=i+2 ){
+      questions.push(row_vals[i]);
     }
-    for( i = CHOICE_START_COL; i <= values[row].length; i=i+2 ){ 
-      questions.push(values[row][i]);
+    for( i = CHOICE_START_COL; i <= row_vals.length; i=i+2 ){ 
+      choices.push(row_vals[i]); 
     }
 
     // Filter out empties
-    questions = questions.filter(is_truthy);
-    choices = choices.filter(is_truthy);
+
+    questions = questions.filter(isTruthy);
+    choices = choices.filter(isTruthy);
     
     // Bail if questions and choices don't line up
     if(questions.length !== choices.length){
       var msg = "Number of choices sets and number of questions don't match."
-      msg = msg + " # Q's:" + questions.length + " # C's:" + choices.length;
+      msg = msg + "\n" + questions + "\n" + choices;
       throw new Error(msg);
     }
 
@@ -56,12 +56,23 @@ function populateFormWithValues(form, values){
         .setChoiceValues(choices[i].split(";"))
         .setRequired(true); 
     }
+}
+
+function populateFormWithValues(form, values){
+  for(row = 0; row < values.length; row++){
+    var img_id = values[row][IMG_ID_COL];
+    var img_name = values[row][IMG_NAME_COL];
+
+    if(isTruthy(img_id)){
+      form.addPageBreakItem().setTitle(img_name);
+      addImageToFormByID(form, img_id, img_name);
+      addImageQuestionsToForm(form, values[row]);
+    }
   }   
-  
   return(form);
 }
 
-function is_truthy(x){return Boolean(x);}
+function isTruthy(x){return Boolean(x);}
 
 function createFormWithBacking(){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
